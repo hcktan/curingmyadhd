@@ -39,6 +39,9 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3"/>
       <feColorMatrix type="saturate" values="0"/>
     </filter>
+    <clipPath id="sutun" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="430" height="860"/>
+    </clipPath>
     <clipPath id="yanlar" clipPathUnits="userSpaceOnUse">
       <rect x="-5000" y="0" width="5000" height="860"/>
       <rect x="430" y="0" width="5000" height="860"/>
@@ -51,7 +54,8 @@
   <circle cx="336" cy="352" r="190" fill="url(#glow)"/>
   <circle cx="336" cy="352" r="19" fill="var(--sun)"/>
 
-  <g id="daglar">
+  <!-- Dağlar kendi 430 birimlik sütununa kırpılır: kenardan taşan parçalar aynalanan kopyada havada kalmasın. -->
+  <g id="daglar" clip-path="url(#sutun)">
     <path d="M0 470 L0 436 L38 418 L72 440 L118 404 L160 436 L206 386 L236 414 L270 366 L312 410 L352 384 L392 420 L430 400 L430 470 Z" fill="var(--m1)"/>
     <path d="M0 470 L0 452 L46 418 L88 446 L132 404 L176 440 L236 330 L262 372 L292 348 L338 408 L384 386 L430 424 L430 470 Z" fill="var(--m2)"/>
     <path d="M-10 470 L-10 446 L60 410 L104 438 L150 392 L196 420 L236 300 L270 350 L292 330 L336 392 L380 372 L440 420 L440 470 Z" fill="var(--m3)"/>
@@ -69,6 +73,11 @@
     <use href="#daglar" transform="scale(-1 1)"/>
     <use href="#daglar" transform="translate(860 0) scale(-1 1)"/>
     <use href="#daglar" transform="translate(860 0)"/>
+  </g>
+  <!-- Aynalanan dikişte (x=±430) uzak sıranın tepesi öndeki aydınlık sırtın V'sinden görünmesin diye sırt kapatılır. -->
+  <g class="wide-only" fill="var(--m3lit)">
+    <polygon points="419,405.8 430,399.4 441,405.8 430,413.5"/>
+    <polygon points="-441,405.8 -430,399.4 -419,405.8 -430,413.5"/>
   </g>
   <rect x="-3000" y="410" width="6430" height="62" fill="url(#hazeg)"/>
 

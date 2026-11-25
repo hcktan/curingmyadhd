@@ -30,7 +30,9 @@ function esleme(o: Ham): boolean {
 
 function kayitliPlanMi(v: unknown): v is KayitliPlan {
   if (!nesne(v)) return false;
-  return metin(v.id) && typeof v.silindi === 'boolean' && esleme(v) && metin(v.ad) && metin(v.plan);
+  return (
+    metin(v.id) && typeof v.silindi === 'boolean' && esleme(v) && V.planAdi(v.ad) !== null && V.planMetni(v.plan) !== null
+  );
 }
 
 export interface VeriDeposuSecenekleri {

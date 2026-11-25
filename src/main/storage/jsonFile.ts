@@ -1,7 +1,7 @@
 /* Tek bir JSON dosyası: okuma, atomik yazma, yazma birleştirme, bozuk dosyayı kenara alma.
    Electron'a bağlı değildir; Vitest ile geçici klasörde denenir. */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 export interface JsonFileOptions<T> {
@@ -20,6 +20,8 @@ export class JsonFile<T> {
   private kirli = false;
   /** Kenara alınan bozuk dosyanın yolu (varsa). */
   readonly bozukYolu: string | null = null;
+  /** Bozuk dosya kenara alınamadıysa diske hiç yazılmaz: bozuk dosya korunur. */
+  private salt_okunur = false;
 
   readonly yol: string;
   private readonly o: JsonFileOptions<T>;
@@ -35,11 +37,17 @@ export class JsonFile<T> {
       if (okunan.durum === 'bozuk') {
         // Bozuk dosya üzerine yazılmaz: önce kenara alınır.
         const ad = basename(yol, '.json') + '.bozuk-' + this.simdi() + '.json';
-        this.bozukYolu = join(dirname(yol), ad);
-        renameSync(yol, this.bozukYolu);
+        try {
+          renameSync(yol, join(dirname(yol), ad));
+          this.bozukYolu = join(dirname(yol), ad);
+        } catch (e) {
+          console.error('[depo] bozuk dosya kenara alınamadı, yazma kapatıldı:', yol, e);
+          this.salt_okunur = true;
+        }
       }
       this.deger = o.varsayilan();
-      this.yazAtomik();
+      this.kirli = true;
+      this.flush();
     }
   }
 
@@ -80,14 +88,25 @@ export class JsonFile<T> {
       clearTimeout(this.zamanlayici);
       this.zamanlayici = null;
     }
-    if (!this.kirli) return;
-    this.yazAtomik();
+    if (!this.kirli || this.salt_okunur) return;
+    try {
+      this.yazAtomik();
+    } catch (e) {
+      // Disk dolu ya da izin hatası: uygulama düşmez, değer bellekte kalır ve sonraki yazmada yeniden denenir.
+      console.error('[depo] yazılamadı:', this.yol, e);
+    }
   }
 
   /** Önce .tmp dosyasına yazar, sonra rename ile yerine koyar. Yarıda kesilirse asıl dosya sağlam kalır. */
   private yazAtomik(): void {
     const tmp = this.yol + '.tmp';
-    writeFileSync(tmp, JSON.stringify(this.deger, null, 2) + '\n', 'utf8');
+    const fd = openSync(tmp, 'w');
+    try {
+      writeSync(fd, JSON.stringify(this.deger, null, 2) + '\n', null, 'utf8');
+      fsyncSync(fd);
+    } finally {
+      closeSync(fd);
+    }
     renameSync(tmp, this.yol);
     this.kirli = false;
   }

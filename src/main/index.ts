@@ -1,7 +1,7 @@
 /* Ana süreç: tek pencere, güvenlik sınırı, IPC, veri deposu ve pencere durumu. */
 
 import { app, BrowserWindow, ipcMain, Menu, screen, session, type IpcMainInvokeEvent } from 'electron';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { macosMenusu } from '../platform/macos/menu';
 import { macosPencereSecenekleri } from '../platform/macos/window';
 import { KANAL } from '../shared/ipc';
@@ -15,9 +15,11 @@ const RENDERER_URL = process.env['ELECTRON_RENDERER_URL'];
 const GELISTIRME = !app.isPackaged && !!RENDERER_URL;
 
 /* Testler gerçek kullanıcı verisine dokunmasın diye veri klasörü komut satırından verilebilir.
-   Bu bir anahtar değildir; yalnızca klasör yoludur. */
-const klasorArg = process.argv.find((a) => a.startsWith('--cma-veri-klasoru='));
-if (klasorArg) app.setPath('userData', klasorArg.slice('--cma-veri-klasoru='.length));
+   Bu bir anahtar değildir; yalnızca klasör yoludur.
+   Yalnızca paketlenmemiş uygulamada ve mutlak yolla kabul edilir. */
+const klasorArg = app.isPackaged ? undefined : process.argv.find((a) => a.startsWith('--cma-veri-klasoru='));
+const testKlasoru = klasorArg?.slice('--cma-veri-klasoru='.length);
+if (testKlasoru && isAbsolute(testKlasoru)) app.setPath('userData', testKlasoru);
 
 if (!app.requestSingleInstanceLock()) {
   // İki örnek aynı JSON dosyalarına yazmasın.
@@ -88,8 +90,21 @@ if (!app.requestSingleInstanceLock()) {
 
     const wc = pencere.webContents;
     // Gezinme kilidi: uygulama dışı adres yok, yeni pencere yok.
+    const izinli = (url: string): boolean => {
+      try {
+        return new URL(url).href.split('#')[0] === sayfaAdresi().split('#')[0];
+      } catch {
+        return false;
+      }
+    };
     wc.on('will-navigate', (e, url) => {
-      if (new URL(url).href.split('#')[0] !== sayfaAdresi().split('#')[0]) e.preventDefault();
+      if (!izinli(url)) e.preventDefault();
+    });
+    wc.on('will-redirect', (e, url) => {
+      if (!izinli(url)) e.preventDefault();
+    });
+    wc.on('will-frame-navigate', (e) => {
+      if (!izinli(e.url)) e.preventDefault();
     });
     wc.setWindowOpenHandler(() => ({ action: 'deny' }));
 
@@ -128,6 +143,8 @@ if (!app.requestSingleInstanceLock()) {
 
     // Uygulama hiçbir izin istemez (kamera, bildirim vb.).
     session.defaultSession.setPermissionRequestHandler((_wc, _izin, cb) => cb(false));
+    session.defaultSession.setPermissionCheckHandler(() => false);
+    session.defaultSession.setDevicePermissionHandler(() => false);
 
     isle(
       KANAL.yukle,

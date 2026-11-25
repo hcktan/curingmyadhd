@@ -27,6 +27,9 @@ describe('fitToDisplays', () => {
     expect(fitToDisplays({ width: 3000, height: 2000 }, [ANA])).toEqual({ x: 0, y: 25, width: 1440, height: 875 });
     expect(fitToDisplays({ width: 100, height: 100 }, [ANA])).toMatchObject({ width: 430, height: 640 });
   });
+  it('elle bozulmuş dev boyut ekrana göre sınırlanır', () => {
+    expect(fitToDisplays({ x: 10, y: 30, width: 1e9, height: 1e9 }, [ANA])).toEqual({ x: 10, y: 30, width: 1440, height: 875 });
+  });
 });
 
 describe('panelIcinGenislet', () => {

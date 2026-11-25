@@ -53,9 +53,12 @@ export function fitToDisplays(
   ekranlar: Dikdortgen[],
 ): Dikdortgen {
   const ana = ekranlar[0];
+  // Boyut en küçük sınırla en büyük ekranın çalışma alanı arasında tutulur (elle bozulmuş dosyaya karşı).
+  const enGenis = Math.max(...ekranlar.map((e) => e.width));
+  const enYuksek = Math.max(...ekranlar.map((e) => e.height));
   const boyut = {
-    width: Math.max(EN_KUCUK.genislik, pencere.width),
-    height: Math.max(EN_KUCUK.yukseklik, pencere.height),
+    width: Math.min(enGenis, Math.max(EN_KUCUK.genislik, pencere.width)),
+    height: Math.min(enYuksek, Math.max(EN_KUCUK.yukseklik, pencere.height)),
   };
   if (pencere.x === undefined || pencere.y === undefined) return ortala(boyut, ana);
   const r = { x: pencere.x, y: pencere.y, ...boyut };
@@ -83,6 +86,7 @@ function durumMu(h: unknown): PencereDurumu | null {
   const sayi = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
   const istege = (v: unknown) => v === undefined || sayi(v);
   if (!istege(o.x) || !istege(o.y) || !sayi(o.genislik) || !sayi(o.yukseklik)) return null;
+  if ((o.genislik as number) <= 0 || (o.yukseklik as number) <= 0) return null;
   if (typeof o.tamEkran !== 'boolean' || typeof o.buyutulmus !== 'boolean' || typeof o.panelAcik !== 'boolean')
     return null;
   return o as unknown as PencereDurumu;

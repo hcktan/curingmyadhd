@@ -22,3 +22,10 @@ Kapsam dışı kalan fikirler buraya yazılır; uygulanmaz.
 - Electron testleri ekran renk profilini `--force-color-profile=srgb` ile, ölçeği `--force-device-scale-factor=1` ile sabitliyor. 1512x982 görüntüsü ekranı bundan küçük bir bilgisayarda pencereye sığmayabilir.
 - Panel kapanınca, açılırken genişleyen pencere eski boyutuna dönmüyor (kapsamda istenmedi).
 - Paneli sürükleyerek genişletmek (Soru 6, kapsam dışı).
+- Üretimde sayfa `file://` ile yükleniyor; `file:` altında CSP'deki `'self'` geniş yorumlanabiliyor. Paketlemede (Faz 6) `protocol.handle` ile özel bir şemaya (ör. `app://`) geçilmeli (guvenlik-kontrol önerisi).
+
+## gorsel-kontrol raporu, adım 01
+- Aynalanan dikişteki havada asılı parça düzeltildi (dağ sütunu kırpıldı, dikişe sırt yaması kondu). Dağ deseninin tekrarı geniş ve tam ekranda belli oluyor; yan dağlar için ayrı çizim ya da ölçek çeşitlemesi (Faz 6, gökyüzü çeşitliliği).
+- Sahne ile panel arasındaki sınır sert; koyu temada sahne kesilmiş gibi duruyor. Yumuşak bir geçiş ya da panel zemininin sahneyle uyumu düşünülebilir.
+- Buz parıltısı elipsleri (wisps) sahne ya da pencere kenarında yarım kesiliyor; geniş sahnede yalnızca sağda başlıyorlar (görüntüde animasyon kapalı). Geniş sahnede sayıları ve başlangıç yerleri çoğaltılabilir.
+- Panelde "PLAN" iki kez görünüyor: sekme adı ve kartın başlığı. Tek sekme varken fazlalık; sekmeler çoğalınca kart başlığı kaldırılabilir.
