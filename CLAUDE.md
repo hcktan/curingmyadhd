@@ -43,8 +43,10 @@ Ayrıntılı plan: `docs/PLAN.md`. Tarayıcı sürümü (v0.1, başlangıç nokt
 - Arayüz değişince açık ve koyu temada ekran görüntüsü alınır ve incelenir.
 
 ## Komutlar
-- `npm install` ve bir kez `npx playwright install chromium`: kurulum.
-- `npm run dev`: Vite geliştirme sunucusu (http://localhost:5173).
-- `npm run build`: TypeScript denetimi (`tsc`) ve Vite derlemesi (`dist/`).
-- `npm test`: Vitest, tek seferlik (`tests/unit/`).
-- `npm run shot`: derler, `vite preview` (4173) üzerinde Playwright'ı çalıştırır. Önce `kaynak` projesi `kaynak/v0.1-tarayici.html` dosyasından `tests/shots/kaynak/` görüntülerini çeker, sonra `tasinan` projesi aynı durumları `tests/shots/tasinan/` altına çeker ve kaynakla karşılaştırır. Tıklama testleri iki hedefte de çalışır.
+- `npm install` ve bir kez `npx playwright install chromium` (yalnızca `shot:kaynak` için): kurulum.
+- `npm run dev`: Electron'u geliştirme modunda açar (electron-vite, arayüzde HMR).
+- `npm run build`: TypeScript denetimi (`tsconfig.node.json`: ana süreç, preload, ortak; `tsconfig.web.json`: arayüz; `tsconfig.json`: e2e testleri) ve `out/` altına derleme.
+- `npm start`: derlenmiş uygulamayı açar.
+- `npm test`: Vitest, tek seferlik (`tests/unit/`; depo testleri geçici klasörde, Electron'suz).
+- `npm run shot`: derler ve Playwright'ın Electron desteğiyle `tests/e2e/electron/` testlerini çalıştırır (tek işçi, gerçek pencere, her test geçici veri klasörü). Sahne, aynı Electron'da açılan `kaynak/v0.1-tarayici.html` ile piksel piksel karşılaştırılır; panel ve geniş pencere `tests/shots/electron/` temel görüntüleriyle. Temel görüntüleri bilerek yenilemek için: `npx playwright test --project=electron --update-snapshots` (önce kullanıcıya göster).
+- `npm run shot:kaynak`: kaynak sürümün tarayıcı görüntülerini (`tests/shots/kaynak/`, dondurulmuş v0.1.0 referansı) yeniden üretir; elle kullanılır.
