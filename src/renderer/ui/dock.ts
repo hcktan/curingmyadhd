@@ -23,7 +23,8 @@ export interface DockActions {
   restart: () => void;
   prev: () => void;
   next: () => void;
-  openSheet: () => void;
+  /** Ayar düğmesi: sağ paneli açar ya da kapatır. */
+  togglePanel: () => void;
 }
 
 export function bindDock(a: DockActions): void {
@@ -31,12 +32,7 @@ export function bindDock(a: DockActions): void {
   $('reset').addEventListener('click', a.restart);
   $('prev').addEventListener('click', a.prev);
   $('next').addEventListener('click', a.next);
-  $('gear').addEventListener('click', function (this: HTMLElement) {
-    const sh = $('sheet');
-    sh.hidden = !sh.hidden;
-    this.setAttribute('aria-expanded', sh.hidden ? 'false' : 'true');
-    if (!sh.hidden) a.openSheet();
-  });
+  $('gear').addEventListener('click', a.togglePanel);
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'Space') return;
     const tag = ((e.target as Element).tagName || '').toLowerCase();

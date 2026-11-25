@@ -32,3 +32,8 @@
   .snowf, .wisp, #peng * { animation: none !important; }
   #pengpos { transition: none; }
 }
+
+/* Geniş pencere: sütun dışındaki öğeler yalnızca .app.wide iken görünür (bkz. scene/layout.ts). */
+.wide-only { display: none; }
+.app.wide .wide-only { display: inline; }
+.app.wide .narrow-only { display: none; }

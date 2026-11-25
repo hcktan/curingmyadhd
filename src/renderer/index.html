@@ -11,6 +11,8 @@
 <div class="app">
   <!-- Sahne SVG'si src/scene/scene.svg dosyasından buraya yerleştirilir. -->
 
+  <div class="surukle" aria-hidden="true"></div>
+
   <div class="ui-top">
     <div class="time" id="time" role="timer" aria-label="25 dakika">25:00</div>
     <div class="strip" id="strip" role="group" aria-label="Plan"></div>
@@ -76,6 +78,8 @@
     </div>
   </div>
 </div>
+
+<div id="panel-root" hidden></div>
 
 <script type="module" src="./main.ts"></script>
 </body>

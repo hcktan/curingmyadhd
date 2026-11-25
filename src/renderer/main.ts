@@ -4,12 +4,15 @@ import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/app.css';
 import './scene/scene.css';
+import './styles/layout.css';
 import sceneSvg from './scene/scene.svg?raw';
 
 import type { Block } from './plan/model';
 import * as T from './plan/timer';
-import { buildStatic, prefersReducedMotion } from './scene/build';
+import { paneliKur } from './panels/mount';
+import { buildStatic, buildWide, prefersReducedMotion } from './scene/build';
 import { clearPrints, initFlow, startFlow } from './scene/flow';
+import { sahneDuzeni } from './scene/layout';
 import { getPengQ, initRender, renderScene, type Motion } from './scene/render';
 import type { AppState } from './state';
 import { aktifPlanYaz, cma, yukle } from './storage/depo';
@@ -20,10 +23,19 @@ import { bindSheet, renderChips, showErr, syncText } from './ui/sheet';
 import { beep, ensureAudio } from './ui/sound';
 import { bindStrip, buildStrip, paintStrip } from './ui/strip';
 
-document.querySelector('.app')!.insertAdjacentHTML('afterbegin', sceneSvg);
+const appEl = document.querySelector<HTMLElement>('.app')!;
+appEl.insertAdjacentHTML('afterbegin', sceneSvg);
 
 const reduceMotion = prefersReducedMotion();
-const { ripples, flakes } = buildStatic(reduceMotion);
+const sutun = buildStatic(reduceMotion);
+const yanlar = buildWide(reduceMotion);
+const ripples = sutun.ripples.concat(yanlar.ripples);
+const flakes = sutun.flakes.concat(yanlar.flakes);
+
+/** Trafik ışıkları için üst pay: pencerede 28 px, tam ekranda 0. */
+function baslikPayi(tamEkran: boolean): void {
+  document.documentElement.style.setProperty('--baslik-payi', tamEkran ? '0px' : '28px');
+}
 
 // Açılış eşzamansız: veri ana süreçten gelir. Veri gelmeden zamanlayıcı başlamaz.
 let app!: AppState;
@@ -109,16 +121,30 @@ async function basla(): Promise<void> {
     lastKey: '',
   };
 
+  baslikPayi(acilis.tamEkran);
+  cma()!.pencere.tamEkranDegisti(baslikPayi);
+  sahneDuzeni(appEl);
+
+  // Plan editörü sağ panelin "Plan" sekmesine taşınır; kimlikler aynı kalır.
+  const sheet = document.getElementById('sheet')!;
+  sheet.hidden = false;
+  const panel = paneliKur([{ id: 'plan', ad: 'Plan', icerik: sheet }], (acik) => {
+    document.getElementById('gear')!.setAttribute('aria-expanded', acik ? 'true' : 'false');
+    if (acik) {
+      showErr('');
+      syncText(app);
+      renderChips(app);
+    }
+    void cma()!.pencere.panelDurumu(acik);
+  });
+  if (acilis.panelAcik) panel.ayarla(true);
+
   bindDock({
     toggle,
     restart: () => restart(false),
     prev: () => goTo(T.prevTarget(app.t)),
     next: () => goTo(app.t.idx + 1),
-    openSheet: () => {
-      showErr('');
-      syncText(app);
-      renderChips(app);
-    },
+    togglePanel: () => panel.ayarla(!panel.acikMi()),
   });
   bindStrip((i) => goTo(i));
   bindSheet(app, commitPlan);

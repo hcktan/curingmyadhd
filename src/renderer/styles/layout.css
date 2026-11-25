@@ -1,0 +1,37 @@
+/* Masaüstü düzeni: solda sahne, sağda açılır panel. Panel kapalıyken sahne tüm pencereyi kaplar.
+   430 px genişlikte ve panel kapalıyken görünüm kaynak sürümle aynıdır. */
+
+body { display: flex; overflow: hidden; }
+.app { flex: 1 1 auto; min-width: 430px; max-width: none; margin: 0; }
+
+/* Trafik ışıkları için üst pay (tam ekranda 0). Değeri arayüz --baslik-payi ile verir. */
+.ui-top { padding-top: calc(22px + var(--baslik-payi, 0px)); }
+.surukle {
+  position: absolute; left: 0; right: 0; top: 0; height: var(--baslik-payi, 0px);
+  -webkit-app-region: drag;
+}
+
+#panel-root { flex: 0 0 360px; width: 360px; height: 100%; min-height: 0; }
+.panel {
+  height: 100%; display: flex; flex-direction: column; gap: 8px;
+  padding: calc(10px + var(--baslik-payi, 0px)) 12px 12px;
+  background: var(--sky-top);
+}
+.panel-ust {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px;
+  -webkit-app-region: drag;
+}
+.panel-ust button { -webkit-app-region: no-drag; }
+.sekmeler { display: flex; gap: 4px; }
+.sekme {
+  font: inherit; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg);
+  background: transparent; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; opacity: 0.75;
+}
+.sekme[aria-selected="true"] { background: var(--chip-on); opacity: 1; }
+.panel-icerik { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+
+/* Plan editörü panelde: aynı cam görünüm, yalnızca yeri ve boyu değişir. Kendi içinde kayar. */
+.panel .sheet {
+  position: relative; left: auto; right: auto; bottom: auto;
+  max-height: none; flex: 1 1 auto; min-height: 0;
+}
