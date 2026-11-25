@@ -43,4 +43,8 @@ Ayrıntılı plan: `docs/PLAN.md`. Tarayıcı sürümü (v0.1, başlangıç nokt
 - Arayüz değişince açık ve koyu temada ekran görüntüsü alınır ve incelenir.
 
 ## Komutlar
-Faz 0'dan sonra bu bölüm gerçek komutlarla (`npm run dev`, `npm test`, `npm run shot`) güncellenir.
+- `npm install` ve bir kez `npx playwright install chromium`: kurulum.
+- `npm run dev`: Vite geliştirme sunucusu (http://localhost:5173).
+- `npm run build`: TypeScript denetimi (`tsc`) ve Vite derlemesi (`dist/`).
+- `npm test`: Vitest, tek seferlik (`tests/unit/`).
+- `npm run shot`: derler, `vite preview` (4173) üzerinde Playwright'ı çalıştırır. Önce `kaynak` projesi `kaynak/v0.1-tarayici.html` dosyasından `tests/shots/kaynak/` görüntülerini çeker, sonra `tasinan` projesi aynı durumları `tests/shots/tasinan/` altına çeker ve kaynakla karşılaştırır. Tıklama testleri iki hedefte de çalışır.

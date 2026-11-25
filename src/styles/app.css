@@ -1,0 +1,173 @@
+/* Temel stil (kaynakta satır 1). Görünüm değişmesin diye aynen taşındı. */
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+
+/* Layout: tam ekran dikey sahne (en fazla 430px genişlik). Üstte süre ve plan şeridi, altta kontrol hapı.
+   Plan editörü, düğmenin üstünde açılan cam bir panel. Sahne penguene arkadan bakar: ufuk y=470, penguen
+   perspektifle ufka doğru küçülür. Tüm plan tek yolculuk; kar ve sis yolculukla seyrelir. */
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.app {
+  position: relative;
+  height: 100%;
+  min-height: 620px;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--sky-top);
+}
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.ui-top, .ui-bottom {
+  position: absolute; left: 0; right: 0;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column;
+  pointer-events: none;
+}
+.ui-top > *, .ui-bottom > * { pointer-events: auto; }
+.ui-top { top: 0; padding-top: 22px; gap: 10px; align-items: flex-start; text-align: left; }
+.ui-bottom { bottom: 0; padding-bottom: 22px; align-items: center; }
+
+.time {
+  font-family: var(--font-display); font-weight: 300;
+  font-size: clamp(44px, 13vw, 60px); line-height: 1; white-space: nowrap;
+  text-shadow: 0 0 18px var(--sky-mid);
+}
+.time .d { display: inline-block; width: 0.6em; text-align: center; }
+.time .c { display: inline-block; width: 0.26em; text-align: center; }
+
+/* Plan şeridi: segment genişliği blok süresiyle orantılı */
+.strip { align-self: stretch; display: flex; gap: 3px; }
+.seg {
+  flex: 1 1 0; min-width: 4px; height: 22px; padding: 0; border: 0; background: transparent;
+  display: flex; align-items: center; cursor: pointer;
+}
+.seg .bar {
+  display: block; width: 100%; height: 5px; border-radius: 3px; overflow: hidden;
+  background: var(--track); transition: height 0.2s;
+}
+.seg.cur .bar { height: 9px; }
+.seg .fill {
+  display: block; width: 100%; height: 100%; transform-origin: left center; transform: scaleX(0);
+  transition: transform 0.25s linear; background: var(--fg);
+}
+.seg.k-K .fill { background: var(--patch); }
+.seg.k-U .fill { background: var(--seg-long); }
+
+.dock {
+  display: flex; align-items: center; gap: 6px; padding: 7px; border-radius: 999px;
+  background: var(--panel); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 10px 30px rgba(10, 20, 34, 0.16), inset 0 0 0 1px var(--edge);
+}
+.primary {
+  height: 48px; min-width: 112px; padding: 0 12px;
+  font-family: var(--font-display); font-weight: 500; font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--pg); background: linear-gradient(180deg, var(--ice-hi), var(--ice)); border: 0; border-radius: 999px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30, 60, 90, 0.22);
+}
+.primary:hover { filter: brightness(1.07); }
+.round {
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+  color: var(--fg); background: var(--chip); border: 0; border-radius: 50%; cursor: pointer;
+}
+.round:hover { background: var(--chip-on); }
+.round:disabled { opacity: 0.4; cursor: default; }
+.round svg { display: block; }
+
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--fg); outline-offset: 2px;
+}
+
+/* Ayar paneli */
+.sheet {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: 94px; max-height: calc(100% - 190px);
+  overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 22px;
+  background: var(--panel-strong);
+  backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 10px 30px rgba(10, 20, 34, 0.18), inset 0 0 0 1px var(--edge);
+}
+.sec { display: flex; flex-direction: column; gap: 10px; }
+.sec + .sec { border-top: 1px solid var(--track); padding-top: 14px; }
+.sec-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8;
+}
+.sec-head .sum { letter-spacing: 0.02em; text-transform: none; opacity: 0.85; text-align: right; }
+.hint { margin: 0; font-size: 12px; opacity: 0.75; }
+.err { margin: 0; font-size: 12px; color: var(--warn); }
+
+textarea, .txt {
+  width: 100%; font: inherit; font-size: 16px; color: var(--fg);
+  background: var(--chip); border: 0; border-radius: 12px; padding: 10px 12px;
+}
+textarea { resize: none; min-height: 60px; letter-spacing: 0.08em; text-transform: uppercase; }
+textarea::placeholder, .txt::placeholder { color: var(--fg); opacity: 0.45; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  --kc: var(--fg);
+  font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.04em; color: var(--fg);
+  background: var(--chip); border: 0; border-bottom: 3px solid var(--kc); border-radius: 10px;
+  padding: 6px 10px 4px; cursor: pointer;
+}
+.chip.k-K { --kc: var(--patch); }
+.chip.k-U { --kc: var(--seg-long); }
+.chip.locked { opacity: 0.4; cursor: default; }
+.chip.locked.cur { opacity: 0.85; }
+.chip.cur { box-shadow: inset 0 0 0 1.5px var(--fg); }
+.chip.sel { background: var(--chip-on); box-shadow: 0 0 0 2px var(--fg); }
+
+.tb {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding: 10px; border-radius: 14px; background: var(--chip);
+}
+.grp { display: flex; align-items: center; gap: 4px; }
+.mini {
+  font: inherit; font-size: 13px; min-width: 34px; height: 34px; padding: 0 9px;
+  color: var(--fg); background: var(--chip-on); border: 0; border-radius: 10px; cursor: pointer;
+}
+.mini[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.mini.danger { color: var(--warn); }
+.tb input {
+  width: 56px; height: 34px; font: inherit; font-size: 16px; text-align: center; color: var(--fg);
+  background: var(--chip-on); border: 0; border-radius: 10px;
+}
+.adds { display: flex; flex-wrap: wrap; gap: 6px; }
+.add {
+  font: inherit; font-size: 12px; color: var(--fg); background: transparent;
+  border: 1px dashed var(--muted); border-radius: 999px; padding: 6px 12px; cursor: pointer;
+}
+.add:hover { background: var(--chip); }
+
+.row2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; }
+.seg2 { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--chip); }
+.seg2 button {
+  font: inherit; font-size: 12px; color: var(--fg); opacity: 0.7; background: transparent; border: 0;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+.seg2 button[aria-pressed="true"] { opacity: 1; background: var(--chip-on); font-weight: 500; }
+
+.save-row { display: flex; gap: 8px; }
+.save-row .txt { flex: 1; min-width: 0; height: 40px; padding-block: 0; }
+.btn-s {
+  font: inherit; font-size: 13px; height: 40px; padding: 0 16px; color: var(--fg);
+  background: var(--chip-on); border: 0; border-radius: 12px; cursor: pointer;
+}
+.saved { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.saved li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--chip); }
+.saved li.empty { opacity: 0.7; font-size: 12px; }
+.sv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sv-main b { font-weight: 500; font-size: 13px; }
+.sv-main span { font-size: 11px; opacity: 0.7; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
