@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fmtMin, parsePlan, serialize } from '../../src/plan/model';
-import { fmtParts } from '../../src/plan/timer';
+import { fmtMin, parsePlan, serialize } from '../../src/shared/plan';
+import { fmtParts } from '../../src/renderer/plan/timer';
 
 describe('parsePlan', () => {
   it('O25 KM5 UM15 üç blok verir', () => {

@@ -1,7 +1,7 @@
 /* Blok geçişi (Otomatik/Elle) ve plan bitince (Dur/Baştan) ayarları. */
 
 import { $, type AppState } from '../state';
-import { KEYS, writeJSON } from '../storage/local';
+import { ayarlarYaz } from '../storage/depo';
 
 export function paintSettings(app: AppState): void {
   Array.prototype.forEach.call($('set-auto').children, (b: Element) => {
@@ -17,14 +17,14 @@ export function bindSettings(app: AppState): void {
     const b = (e.target as Element).closest('button[data-v]');
     if (!b) return;
     app.settings.auto = b.getAttribute('data-v') === '1';
-    writeJSON(KEYS.settings, app.settings);
+    ayarlarYaz(app.settings);
     paintSettings(app);
   });
   $('set-loop').addEventListener('click', (e) => {
     const b = (e.target as Element).closest('button[data-v]');
     if (!b) return;
     app.settings.loop = b.getAttribute('data-v') === '1';
-    writeJSON(KEYS.settings, app.settings);
+    ayarlarYaz(app.settings);
     paintSettings(app);
   });
 }

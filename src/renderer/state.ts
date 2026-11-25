@@ -1,7 +1,7 @@
 /* Uygulamanın paylaşılan durumu. Modüller bu nesneyi okur ve değiştirir. */
 
 import type { Settings, TimerState } from './plan/timer';
-import type { SavedPlan } from './storage/local';
+import type { SavedPlan } from './storage/depo';
 
 export interface AppState {
   t: TimerState;

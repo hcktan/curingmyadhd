@@ -2,7 +2,7 @@
 
 import { parsePlan, serialize, type Block } from '../plan/model';
 import { $, type AppState } from '../state';
-import { KEYS, writeJSON } from '../storage/local';
+import { planKaydet, planSil } from '../storage/depo';
 
 /** HTML kaçışı. Plan adları innerHTML ile yazıldığı için zorunlu. */
 export function esc(s: unknown): string {
@@ -28,11 +28,15 @@ function savePlan(app: AppState): void {
   app.saved.forEach((s, i) => {
     if (s.n === name) found = i;
   });
-  if (found >= 0) app.saved[found] = { n: name, p };
+  if (found >= 0) app.saved[found] = { ...app.saved[found], n: name, p };
   else if (app.saved.length < 20) app.saved.push({ n: name, p });
-  writeJSON(KEYS.saved, app.saved);
   nameEl.value = '';
   renderSaved(app);
+  // Ana sürecin döndüğü liste esastır (kimlikler oradan gelir).
+  void planKaydet(name, p).then((l) => {
+    app.saved = l;
+    renderSaved(app);
+  });
 }
 
 export function bindSaved(app: AppState, load: (blocks: Block[]) => void): void {
@@ -49,9 +53,14 @@ export function bindSaved(app: AppState, load: (blocks: Block[]) => void): void 
     const i = parseInt(b.getAttribute('data-i')!, 10);
     if (!app.saved[i]) return;
     if (b.getAttribute('data-a') === 'del') {
+      const id = app.saved[i].id;
       app.saved.splice(i, 1);
-      writeJSON(KEYS.saved, app.saved);
       renderSaved(app);
+      if (id)
+        void planSil(id).then((l) => {
+          app.saved = l;
+          renderSaved(app);
+        });
     } else {
       const res = parsePlan(app.saved[i].p);
       if (!res.blocks.length) return;

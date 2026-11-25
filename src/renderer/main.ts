@@ -6,13 +6,13 @@ import './styles/app.css';
 import './scene/scene.css';
 import sceneSvg from './scene/scene.svg?raw';
 
-import { serialize, type Block } from './plan/model';
+import type { Block } from './plan/model';
 import * as T from './plan/timer';
 import { buildStatic, prefersReducedMotion } from './scene/build';
 import { clearPrints, initFlow, startFlow } from './scene/flow';
 import { getPengQ, initRender, renderScene, type Motion } from './scene/render';
 import type { AppState } from './state';
-import { KEYS, loadPlanBlocks, loadSaved, loadSettings, writeJSON } from './storage/local';
+import { aktifPlanYaz, cma, yukle } from './storage/depo';
 import { bindDock, renderDock } from './ui/dock';
 import { bindSaved, renderSaved } from './ui/saved';
 import { bindSettings, paintSettings } from './ui/settings';
@@ -25,13 +25,8 @@ document.querySelector('.app')!.insertAdjacentHTML('afterbegin', sceneSvg);
 const reduceMotion = prefersReducedMotion();
 const { ripples, flakes } = buildStatic(reduceMotion);
 
-const app: AppState = {
-  t: T.createTimer(loadPlanBlocks()),
-  settings: loadSettings(),
-  saved: loadSaved(),
-  sel: -1,
-  lastKey: '',
-};
+// Açılış eşzamansız: veri ana süreçten gelir. Veri gelmeden zamanlayıcı başlamaz.
+let app!: AppState;
 
 function render(motion?: Motion): void {
   const s = app.t;
@@ -50,7 +45,7 @@ function render(motion?: Motion): void {
 function commitPlan(np: Block[], newSel: number, fromText?: boolean): void {
   T.applyPlan(app.t, np);
   app.sel = newSel;
-  writeJSON(KEYS.plan, serialize(app.t.plan));
+  aktifPlanYaz(app.t.plan);
   buildStrip(app.t.plan);
   if (fromText) {
     app.lastKey = app.t.idx + ':' + T.editStart(app.t);
@@ -92,7 +87,7 @@ function tick(): void {
 function loadSavedPlan(blocks: Block[]): void {
   T.loadPlan(app.t, blocks);
   app.sel = -1;
-  writeJSON(KEYS.plan, serialize(app.t.plan));
+  aktifPlanYaz(app.t.plan);
   buildStrip(app.t.plan);
   clearPrints();
   app.lastKey = '';
@@ -100,28 +95,44 @@ function loadSavedPlan(blocks: Block[]): void {
   render('instant');
 }
 
-bindDock({
-  toggle,
-  restart: () => restart(false),
-  prev: () => goTo(T.prevTarget(app.t)),
-  next: () => goTo(app.t.idx + 1),
-  openSheet: () => {
-    showErr('');
-    syncText(app);
-    renderChips(app);
-  },
-});
-bindStrip((i) => goTo(i));
-bindSheet(app, commitPlan);
-bindSettings(app);
-bindSaved(app, loadSavedPlan);
+async function basla(): Promise<void> {
+  if (!cma()) {
+    document.body.textContent = 'Bu uygulama yalnızca masaüstü uygulaması olarak çalışır.';
+    return;
+  }
+  const acilis = await yukle();
+  app = {
+    t: T.createTimer(acilis.plan),
+    settings: acilis.settings,
+    saved: acilis.saved,
+    sel: -1,
+    lastKey: '',
+  };
 
-initRender(flakes);
-buildStrip(app.t.plan);
-renderSaved(app);
-paintSettings(app);
-initFlow(ripples, () => T.walking(app.t), getPengQ);
-if (!reduceMotion) startFlow();
-setInterval(tick, 250);
-render('instant');
+  bindDock({
+    toggle,
+    restart: () => restart(false),
+    prev: () => goTo(T.prevTarget(app.t)),
+    next: () => goTo(app.t.idx + 1),
+    openSheet: () => {
+      showErr('');
+      syncText(app);
+      renderChips(app);
+    },
+  });
+  bindStrip((i) => goTo(i));
+  bindSheet(app, commitPlan);
+  bindSettings(app);
+  bindSaved(app, loadSavedPlan);
 
+  initRender(flakes);
+  buildStrip(app.t.plan);
+  renderSaved(app);
+  paintSettings(app);
+  initFlow(ripples, () => T.walking(app.t), getPengQ);
+  if (!reduceMotion) startFlow();
+  setInterval(tick, 250);
+  render('instant');
+}
+
+void basla();
