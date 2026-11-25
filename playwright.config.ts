@@ -1,25 +1,30 @@
 import { defineConfig, devices } from '@playwright/test';
-import type { Target } from './tests/e2e/helpers';
 
-/* İki hedef: "kaynak" (kaynak/v0.1-tarayici.html, file:// ile, değiştirilmeden) ve "tasinan" (Vite derlemesi).
-   Önce kaynak çalışır ve görüntüleri tests/shots/kaynak/ altına yazar; taşınan sürüm bu görüntülerle karşılaştırılır. */
-export default defineConfig<{ target: Target }>({
-  testDir: './tests/e2e',
+/* İki proje:
+   - electron (npm run shot): derlenmiş Electron uygulaması, tek işçi. Sahne kaynakla
+     (tests/shots/kaynak/) ve Electron temel görüntüleriyle (tests/shots/electron/) karşılaştırılır.
+   - kaynak (npm run shot:kaynak): kaynak/v0.1-tarayici.html tarayıcıda; dondurulmuş referans
+     görüntüleri yeniden üretir. Elle çalıştırılır. */
+export default defineConfig({
   outputDir: './test-results',
-  fullyParallel: true,
   reporter: [['list']],
   updateSnapshots: 'none',
-  snapshotPathTemplate: '{testDir}/../shots/kaynak/{arg}{ext}',
+  snapshotPathTemplate: '{testDir}/../../shots/{arg}{ext}',
   // threshold 0: her piksel farkı sayılır (varsayılan 0.2, cam bulanıklığının kaybolmasını bile yakalamıyordu).
   expect: { toHaveScreenshot: { threshold: 0, maxDiffPixelRatio: 0.002, animations: 'disabled' } },
-  use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1 },
-  webServer: {
-    command: 'npx vite preview --port 4173 --strictPort',
-    url: 'http://localhost:4173',
-    reuseExistingServer: !process.env.CI,
-  },
   projects: [
-    { name: 'kaynak', use: { target: 'kaynak' } },
-    { name: 'tasinan', use: { target: 'tasinan' }, dependencies: ['kaynak'] },
+    {
+      name: 'electron',
+      testDir: './tests/e2e/electron',
+      workers: 1,
+      fullyParallel: false,
+      timeout: 60_000,
+    },
+    {
+      name: 'kaynak',
+      testDir: './tests/e2e/kaynak',
+      fullyParallel: true,
+      use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1 },
+    },
   ],
 });

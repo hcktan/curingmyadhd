@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PLAN, parsePlan } from '../../src/plan/model';
-import * as T from '../../src/plan/timer';
+import { DEFAULT_PLAN, parsePlan } from '../../src/shared/plan';
+import * as T from '../../src/renderer/plan/timer';
 
 const MIN = 60000;
 const T0 = 1_700_000_000_000;
