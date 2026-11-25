@@ -1,8 +1,8 @@
-/* Ekran durumları: her durum iki tema ve iki boyutta çekilir. Kaynakta görüntü kaydedilir,
-   taşınan sürümde aynı görüntü kaydedilir ve kaynakla karşılaştırılır. */
+/* Kaynak sürümün ekran durumları: her durum iki tema ve iki boyutta çekilip tests/shots/kaynak/ altına yazılır.
+   Bunlar dondurulmuş referanstır; Electron sahnesi (tests/e2e/electron/sahne.spec.ts) bunlarla karşılaştırılır. */
 import { mkdirSync } from 'node:fs';
 import type { Page } from '@playwright/test';
-import { MIN, SHOTS, expect, test } from './helpers';
+import { MIN, SHOTS, test } from './helpers';
 
 type Step = (page: Page) => Promise<void>;
 
@@ -39,7 +39,6 @@ async function shoot(page: Page, target: string, name: string): Promise<void> {
   mkdirSync(`${SHOTS}/${target}`, { recursive: true });
   await page.mouse.move(0, 0);
   await page.screenshot({ path: `${SHOTS}/${target}/${name}.png`, animations: 'disabled' });
-  if (target === 'tasinan') await expect(page).toHaveScreenshot(`${name}.png`);
 }
 
 for (const [state, steps] of Object.entries(STATES)) {
